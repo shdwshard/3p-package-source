@@ -71,7 +71,25 @@
             "custom_toolchain_file" : "../cmake/Platform/Mac/Toolchain_mac.cmake",
             "cmake_generate_args_release": [
                "-G",
-               "Xcode"
+               "Xcode",
+               "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+            ],
+            "custom_test_cmd" : [
+               "./test_openexr_mac.sh"
+            ]
+         },
+         "Mac-arm64":{
+            "build_configs" : ["Release"],
+            "depends_on_packages" :[ 
+               ["zlib-1.2.11-rev5-mac-arm64", "bedaa7cf67c9bdcade1dd2f3fed9636ba4589da8b3bd50c7b0af8c96654769b9", ""]
+            ],
+            "custom_toolchain_file" : "../cmake/Platform/Mac/Toolchain_mac.cmake",
+            "cmake_generate_args_release": [
+               "-G",
+               "Xcode",
+               "-DCMAKE_APPLE_SILICON_PROCESSOR=arm64",
+               "-DCMAKE_TOOLCHAIN_PLATFORM_NAME=Mac-arm64",
+               "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
             ],
             "custom_test_cmd" : [
                "./test_openexr_mac.sh"

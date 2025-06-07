@@ -15,8 +15,8 @@ export CXX=clang++
 cmake -S temp/src -B temp/build -G "Unix Makefiles" \
     -DCMAKE_BUILD_TYPE=Release \
     -DISA_SSE41=ON \
+    -DCMAKE_CXX_FLAGS="-Wno-error=unused-but-set-variable" \
     -DCMAKE_TOOLCHAIN_FILE=../../../../Scripts/cmake/Platform/Mac/Toolchain_mac.cmake \
     || exit $?
 
 cmake --build temp/build --parallel || exit $?
-

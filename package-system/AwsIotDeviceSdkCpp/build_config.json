@@ -82,6 +82,29 @@
                "8"
             ]
          },
+         "Mac-arm64":{
+            "package_version":"1.15.2-rev2",
+            "build_configs":[
+               "Release"
+            ],
+            "cmake_generate_args":[
+               "-G",
+               "Xcode",
+               "-DCMAKE_OSX_DEPLOYMENT_TARGET=11.0",
+               "-DCMAKE_OSX_ARCHITECTURES=arm64",
+               "-DCMAKE_TOOLCHAIN_FILE=../../../../Scripts/cmake/Platform/Mac/Toolchain_mac.cmake",
+               "-DCMAKE_APPLE_SILICON_PROCESSOR=arm64",
+               "-DCMAKE_TOOLCHAIN_PLATFORM_NAME=Mac-arm64",
+               "-DCMAKE_CXX_FLAGS=\"-fPIC -fno-aligned-allocation\"",
+               "-DCMAKE_CXX_STANDARD=17",
+               "-DCMAKE_POLICY_VERSION_MINIMUM=3.5",
+               "-DCMAKE_INSTALL_LIBDIR=\"lib/Release\""
+            ],
+            "cmake_build_args":[
+               "-j",
+               "8"
+            ]
+         },
          "iOS":{
             "custom_cmake_install":true,
             "cmake_generate_args":[

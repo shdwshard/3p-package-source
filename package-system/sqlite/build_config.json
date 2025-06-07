@@ -31,6 +31,15 @@
             "custom_install_cmd": [
                "./package_unix_like.sh"
             ]
+         },
+         "Mac-arm64":{
+            "package_version":"3.37.2-rev2",
+            "custom_build_cmd": [
+               "./build_unix_like.sh"
+            ],
+            "custom_install_cmd": [
+               "./package_unix_like.sh"
+            ]
          }
       },
       "Linux":{

@@ -1,0 +1,20 @@
+--- pngpriv.h
++++ pngpriv.h
+@@ -520,7 +520,7 @@
+ #  if (defined(__MWERKS__) && defined(macintosh)) || defined(applec) || \
+     defined(THINK_C) || defined(__SC__) || defined(TARGET_OS_MAC)
+    /* We need to check that <math.h> hasn't already been included earlier
+-    * as it seems it doesn't agree with <fp.h>, yet we should really use
++    * as it seems it doesn't agree with <fp.h> (which doesn't exist on modern macOS), yet we should really use
+     * <fp.h> if possible.
+     */
+ #    if !defined(__MATH_H__) && !defined(__MATH_H) && !defined(__cmath__)
+@@ -528,6 +528,8 @@
+ #    endif
+ #  else
+ #    include <math.h>
++#  endif
++#  if defined(TARGET_OS_MAC) && defined(__APPLE__)
+ #  endif
+ #  if defined(_AMIGA) && defined(__SASC) && defined(_M68881)
+    /* Amiga SAS/C: We must include builtin FPU functions when compiling using

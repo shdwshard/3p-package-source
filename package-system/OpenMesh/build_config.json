@@ -32,7 +32,25 @@
                "-DCMAKE_TOOLCHAIN_FILE=../../../../Scripts/cmake/Platform/Mac/Toolchain_mac.cmake",
                "-DCMAKE_CXX_FLAGS=\"-fPIC -fno-aligned-allocation\"",
                "-DCMAKE_CXX_STANDARD=17",
-               "-DCMAKE_BUILD_TYPE=Release"
+               "-DCMAKE_BUILD_TYPE=Release",
+               "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+            ]
+         },
+         "Mac-arm64":{
+            "build_configs": ["Release"],
+            "cmake_find_source":"FindOpenMesh.cmake.NonWindows",
+            "cmake_generate_args":[
+               "-DDISABLE_QMAKE_BUILD=ON",
+               "-DBUILD_APPS=OFF",
+               "-DOPENMESH_DOCS=OFF",
+               "-DOPENMESH_BUILD_UNIT_TESTS=OFF",
+               "-DCMAKE_TOOLCHAIN_FILE=../../../../Scripts/cmake/Platform/Mac/Toolchain_mac.cmake",
+               "-DCMAKE_APPLE_SILICON_PROCESSOR=arm64",
+               "-DCMAKE_TOOLCHAIN_PLATFORM_NAME=Mac-arm64",
+               "-DCMAKE_CXX_FLAGS=\"-fPIC -fno-aligned-allocation\"",
+               "-DCMAKE_CXX_STANDARD=17",
+               "-DCMAKE_BUILD_TYPE=Release",
+               "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
             ]
          }
       },

@@ -49,13 +49,13 @@ class PackageDownloader():
         file_path = os.path.normpath(file_path)
         hasher = hashlib.sha256()
         hash_result = None
-        
+
         # we don't follow symlinks here, this is strictly to check actual packages.
         with open(file_path, 'rb') as afile:
             buf = afile.read()
             hasher.update(buf)
             hash_result = hasher.hexdigest()
-    
+
         return hash_result
 
 
@@ -97,16 +97,34 @@ class PackageDownloader():
             Only the first found package is downloaded, and then the search stops. If the checksum of
             the downloaded file doesn't match the checksum in the O3DE dependency list, the package
             isn't unpacked on the filesystem and the download is deleted.
-        
+
             This method supports all URI types handled by the O3DE package system, including S3 URIs.
-            
+
             PRECONDITIONS:
             * LY_PACKAGE_SERVER_URLS must be set in the environment to override the defaultg
             * If using S3 URIs, LY_AWS_PROFILE must be set in the environment and the 'aws' command
               must be on the PATH
-            
+
             Returns True if successful, False otherwise.
          '''
+
+        # First check if the package has already been built locally
+        local_package_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(folder_target))), "packages", package_name + ".tar.xz")
+        if os.path.exists(local_package_path):
+            print(f"Found locally built package: {local_package_path}")
+            download_location = pathlib.Path(folder_target)
+            package_unpack_folder = download_location / package_name
+            package_unpack_folder.mkdir(parents=True, exist_ok=True)
+
+            try:
+                with tarfile.open(local_package_path) as archive_file:
+                    print("    - unpacking local package...")
+                    archive_file.extractall(package_unpack_folder)
+                    print(f"Local package unpacked successfully to {os.path.realpath(package_unpack_folder)}")
+                return True
+            except (OSError, tarfile.TarError) as e:
+                print(f"    - unable to unpack local package: {e}")
+                # Fall through to try downloading from servers
 
         # make sure a package with that name is not already present:
         server_urls = os.environ.get("LY_PACKAGE_SERVER_URLS", default = "")
@@ -120,7 +138,7 @@ class PackageDownloader():
         package_file_name = package_name + ".tar.xz"
         package_download_name = download_location / package_file_name
         package_unpack_folder = download_location / package_name
-        
+
         server_list = server_urls.split(';')
 
         try:
@@ -172,7 +190,7 @@ class PackageDownloader():
                     tls_context = ssl.create_default_context(cafile=certifi.where())
                     print(f"    - Trying URL: {full_package_url}")
                     with urllib.request.urlopen(url=full_package_url, context = tls_context) as server_response:
-                        
+
                         file_data = server_response.read()
                         with open(package_download_name, "wb") as save_package:
                             save_package.write(file_data)
@@ -221,7 +239,7 @@ if __name__ == '__main__':
     parser.add_argument('--package-hash',
                         help='The package hash to verify',
                         required=True)
-    
+
     parser.add_argument('--output-folder',
                         help='The folder to unpack to.  It will get unpacked into (package-name) subfolder!',
                         required=True)
@@ -231,4 +249,3 @@ if __name__ == '__main__':
         sys.exit(0)
 
     sys.exit(1)
-

@@ -54,7 +54,24 @@
             ],
             "cmake_generate_args":[
                "-G",
-               "Xcode"
+               "Xcode",
+               "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+            ],
+            "cmake_build_args":[
+               "--target samplerate"
+            ]
+         },
+         "Mac-arm64":{
+            "build_configs":[
+               "Release"
+            ],
+            "cmake_generate_args":[
+               "-G",
+               "Xcode",
+               "-DCMAKE_TOOLCHAIN_FILE=../../../../Scripts/cmake/Platform/Mac/Toolchain_mac.cmake",
+               "-DCMAKE_APPLE_SILICON_PROCESSOR=arm64",
+               "-DCMAKE_TOOLCHAIN_PLATFORM_NAME=Mac-arm64",
+               "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
             ],
             "cmake_build_args":[
                "--target samplerate"

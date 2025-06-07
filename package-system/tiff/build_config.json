@@ -42,7 +42,7 @@
                 ]
             }
         },
-        
+
         "Darwin":{
             "Mac":{
                 "depends_on_packages" :[ 
@@ -50,6 +50,20 @@
                 ],
                 "custom_build_cmd": [
                     "./build_tiff_mac.sh"
+                 ],
+                 "custom_install_cmd": [
+                    "./install_tiff_mac.sh"
+                 ],
+                 "custom_test_cmd" : [
+                    "./test_tiff_mac.sh"
+                ]
+            },
+            "Mac-arm64":{
+                "depends_on_packages" :[ 
+                    ["zlib-1.2.11-rev5-mac-arm64", "bedaa7cf67c9bdcade1dd2f3fed9636ba4589da8b3bd50c7b0af8c96654769b9", ""]
+                ],
+                "custom_build_cmd": [
+                    "./build_tiff_mac_arm64.sh"
                  ],
                  "custom_install_cmd": [
                     "./install_tiff_mac.sh"

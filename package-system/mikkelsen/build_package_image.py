@@ -26,6 +26,13 @@ folder_names = {
     'mac'       : ([
         '-G', 'Xcode'
     ], []),
+    'mac-arm64' : ([
+        '-G', 'Xcode',
+        f'-DCMAKE_TOOLCHAIN_FILE={cmake_scripts_path}/Platform/Mac/Toolchain_mac.cmake',
+        '-DCMAKE_APPLE_SILICON_PROCESSOR=arm64',
+        '-DCMAKE_TOOLCHAIN_PLATFORM_NAME=Mac-arm64',
+        '-DCMAKE_OSX_DEPLOYMENT_TARGET=11.0'
+    ], []),
     'ios'       : ([
         '-G', 'Xcode',
         f'-DCMAKE_TOOLCHAIN_FILE={cmake_scripts_path}/Platform/iOS/Toolchain_ios.cmake',
@@ -70,7 +77,7 @@ build_dir = os.path.join(script_dir, 'build', args.platform)
 os.makedirs(build_dir, exist_ok=True)
 
 # generate
-generate_call = ['cmake', '-S.', f'-B{build_dir}', f'-DCMAKE_INSTALL_PREFIX=../../package-system/{package_name}-{args.platform}/']
+generate_call = ['cmake', '-S.', f'-B{build_dir}', f'-DCMAKE_INSTALL_PREFIX=../../package-system/{package_name}-{args.platform}/', f'-DPACKAGE_PLATFORM={args.platform}']
 if cmake_generation:
     generate_call += cmake_generation
 result_value = subprocess.run(generate_call, shell=False, cwd=script_dir)

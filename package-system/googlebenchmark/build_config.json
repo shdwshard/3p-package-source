@@ -74,7 +74,8 @@
                "-DHAVE_STD_REGEX=TRUE",
                "-DBENCHMARK_ENABLE_TESTING=OFF",
                "-DCMAKE_INSTALL_LIBDIR=\"lib/Debug\"",
-               "-DCMAKE_BUILD_TYPE=Debug"
+               "-DCMAKE_BUILD_TYPE=Debug",
+               "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
             ],
             "cmake_generate_args_release":[
                "-G",
@@ -84,7 +85,38 @@
                "-DHAVE_STD_REGEX=TRUE",
                "-DBENCHMARK_ENABLE_TESTING=OFF",
                "-DCMAKE_INSTALL_LIBDIR=\"lib/Release\"",
-               "-DCMAKE_BUILD_TYPE=Release"
+               "-DCMAKE_BUILD_TYPE=Release",
+               "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+            ]
+         },
+         "Mac-arm64":{
+            "cmake_generate_args_debug":[
+               "-G",
+               "Xcode",
+               "-DCMAKE_OSX_DEPLOYMENT_TARGET=11.0",
+               "-DCMAKE_TOOLCHAIN_FILE=../../../../Scripts/cmake/Platform/Mac/Toolchain_mac.cmake",
+               "-DCMAKE_APPLE_SILICON_PROCESSOR=arm64",
+               "-DCMAKE_TOOLCHAIN_PLATFORM_NAME=Mac-arm64",
+               "-DCMAKE_CXX_STANDARD=17",
+               "-DHAVE_STD_REGEX=TRUE",
+               "-DBENCHMARK_ENABLE_TESTING=OFF",
+               "-DCMAKE_INSTALL_LIBDIR=\"lib/Debug\"",
+               "-DCMAKE_BUILD_TYPE=Debug",
+               "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+            ],
+            "cmake_generate_args_release":[
+               "-G",
+               "Xcode",
+               "-DCMAKE_OSX_DEPLOYMENT_TARGET=11.0",
+               "-DCMAKE_TOOLCHAIN_FILE=../../../../Scripts/cmake/Platform/Mac/Toolchain_mac.cmake",
+               "-DCMAKE_APPLE_SILICON_PROCESSOR=arm64",
+               "-DCMAKE_TOOLCHAIN_PLATFORM_NAME=Mac-arm64",
+               "-DCMAKE_CXX_STANDARD=17",
+               "-DHAVE_STD_REGEX=TRUE",
+               "-DBENCHMARK_ENABLE_TESTING=OFF",
+               "-DCMAKE_INSTALL_LIBDIR=\"lib/Release\"",
+               "-DCMAKE_BUILD_TYPE=Release",
+               "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
             ]
          },
          "iOS":{

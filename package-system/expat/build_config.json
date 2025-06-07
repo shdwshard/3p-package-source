@@ -59,7 +59,21 @@
               "cmake_generate_args": [
                   "-G",
                   "Xcode",
-                  "-DCMAKE_TOOLCHAIN_FILE=../../../../Scripts/cmake/Platform/Mac/Toolchain_mac.cmake"
+                  "-DCMAKE_TOOLCHAIN_FILE=../../../../Scripts/cmake/Platform/Mac/Toolchain_mac.cmake",
+                  "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+              ],
+              "custom_test_cmd" : [
+                "./test_expat_mac.sh"
+            ]
+          },
+          "Mac-arm64": {
+              "cmake_generate_args": [
+                  "-G",
+                  "Xcode",
+                  "-DCMAKE_TOOLCHAIN_FILE=../../../../Scripts/cmake/Platform/Mac/Toolchain_mac.cmake",
+                  "-DCMAKE_APPLE_SILICON_PROCESSOR=arm64",
+                  "-DCMAKE_TOOLCHAIN_PLATFORM_NAME=Mac-arm64",
+                  "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
               ],
               "custom_test_cmd" : [
                 "./test_expat_mac.sh"
@@ -70,7 +84,8 @@
                 "-G",
                 "Xcode",
                 "-DCMAKE_MACOSX_BUNDLE=OFF",
-                "-DCMAKE_TOOLCHAIN_FILE=../../../../Scripts/cmake/Platform/iOS/Toolchain_ios.cmake"
+                "-DCMAKE_TOOLCHAIN_FILE=../../../../Scripts/cmake/Platform/iOS/Toolchain_ios.cmake",
+                "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
             ],
             "custom_test_cmd" : [
               "./test_expat_ios.sh"

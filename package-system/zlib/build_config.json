@@ -31,11 +31,19 @@
                 ]
             }
         },
-        
+
         "Darwin":{
             "Mac":{
                 "custom_build_cmd": [
                     "./build_zlib_mac.sh"
+                 ],
+                 "custom_install_cmd": [
+                    "./install_zlib_mac.sh"
+                 ]
+            },
+            "Mac-arm64":{
+                "custom_build_cmd": [
+                    "./build_zlib_mac_arm64.sh"
                  ],
                  "custom_install_cmd": [
                     "./install_zlib_mac.sh"

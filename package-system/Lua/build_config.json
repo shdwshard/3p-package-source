@@ -44,7 +44,19 @@
                "-G",
                "Xcode",
                "-DCMAKE_TOOLCHAIN_FILE=../../../../Scripts/cmake/Platform/Mac/Toolchain_mac.cmake",
-               "-DCMAKE_C_FLAGS=\"-fPIC -O2 -Wall -Wextra -DLUA_USE_MACOSX\""
+               "-DCMAKE_C_FLAGS=\"-fPIC -O2 -Wall -Wextra -DLUA_USE_MACOSX\"",
+               "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+            ]
+         },
+         "Mac-arm64":{
+            "cmake_generate_args":[
+               "-G",
+               "Xcode",
+               "-DCMAKE_TOOLCHAIN_FILE=../../../../Scripts/cmake/Platform/Mac/Toolchain_mac.cmake",
+               "-DCMAKE_APPLE_SILICON_PROCESSOR=arm64",
+               "-DCMAKE_TOOLCHAIN_PLATFORM_NAME=Mac-arm64",
+               "-DCMAKE_C_FLAGS=\"-fPIC -O2 -Wall -Wextra -DLUA_USE_MACOSX\"",
+               "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
             ]
          },
          "iOS":{

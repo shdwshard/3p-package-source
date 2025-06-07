@@ -1,7 +1,7 @@
 /*
  Copyright (c) Contributors to the Open 3D Engine Project.
  For complete copyright and license terms please see the LICENSE at the root of this distribution.
- 
+
  SPDX-License-Identifier: Apache-2.0 OR MIT
 */
 
@@ -17,10 +17,10 @@ readHeader(const char fileName[],
      int &width, int &height, RgbaChannels& channels)
 {
     RgbaInputFile inputFile(fileName);
-    
+
     int num_channels = 0;
     const Header& header = inputFile.header();
-   
+
     Box2i dw = header.dataWindow();
     width  = dw.max.x - dw.min.x + 1;
     height = dw.max.y - dw.min.y + 1;
@@ -47,17 +47,17 @@ int CheckFile(const char fileName[], int expectedWidth, int expectedHeight, Rgba
 
 int main()
 {
-    if (int resultCode = CheckFile("test/base_Log2-48nits_16_LUT.exr", 256, 16, WRITE_RGB) != 0)
+    if (int resultCode = CheckFile("base_Log2-48nits_16_LUT.exr", 256, 16, WRITE_RGB) != 0)
     {
         return resultCode;
     }
-    
-    if (int resultCode = CheckFile("test/atom_brdf.exr", 256, 256,  WRITE_RGB) != 0)
+
+    if (int resultCode = CheckFile("atom_brdf.exr", 256, 256,  WRITE_RGB) != 0)
     {
         return resultCode;
     }
 
     printf("All is ok\n");
-    
+
     return 0;
 }

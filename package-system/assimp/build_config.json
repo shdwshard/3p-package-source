@@ -40,6 +40,20 @@
                  "custom_test_cmd" : [
                     "./test_assimp_mac.sh"
                 ]
+            },
+            "Mac-arm64":{
+                "depends_on_packages" :[ 
+                    ["zlib-1.2.11-rev5-mac-arm64", "b6fea9c79b8bf106d4703b67fecaa133f832ad28696c2ceef45fb5f20013c096", ""]
+                ],
+                "custom_build_cmd": [
+                    "./build_assimp_unix_like.sh"
+                 ],
+                 "custom_install_json": [
+                    "./install_assimp_mac.json"
+                 ],
+                 "custom_test_cmd" : [
+                    "./test_assimp_mac.sh"
+                ]
             }
         },
         "Linux":{
@@ -68,4 +82,3 @@
         }
     }
 }
-

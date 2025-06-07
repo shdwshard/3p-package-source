@@ -46,6 +46,15 @@
                "./install_AWSNativeSDK_mac.sh"
             ]
          },
+         "Mac-arm64":{
+            "cmake_find_source":"FindAWSNativeSDK.cmake.Mac",
+            "custom_build_cmd": [
+               "./build_AWSNativeSDK_mac_arm64.sh"
+            ],
+            "custom_install_cmd": [
+               "./install_AWSNativeSDK_mac.sh"
+            ]
+         },
          "iOS":{
             "package_version":"1.11.361-rev1",
             "cmake_find_source":"FindAWSNativeSDK.cmake.iOS",

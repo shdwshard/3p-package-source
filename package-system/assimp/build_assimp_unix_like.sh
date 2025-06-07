@@ -16,6 +16,13 @@ if [ "$(uname)" = "Darwin" ];
 then
     echo "Loading Darwin toolchain file"
     cmake_base_command+=" -DCMAKE_TOOLCHAIN_FILE=$PWD/../../Scripts/cmake/Platform/Mac/Toolchain_mac.cmake"
+
+    # Check if we're running on Apple Silicon (arm64)
+    if [ "$(uname -m)" = "arm64" ];
+    then
+        echo "Detected Apple Silicon (arm64)"
+        cmake_base_command+=" -DCMAKE_APPLE_SILICON_PROCESSOR=arm64 -DCMAKE_TOOLCHAIN_PLATFORM_NAME=Mac-arm64"
+    fi
 fi
 
 cmake_no_shared_libs="$cmake_base_command -DBUILD_SHARED_LIBS=OFF"

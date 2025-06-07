@@ -36,7 +36,7 @@
             "depends_on_packages" :[ 
                ["zlib-1.2.11-rev5-windows", "8847112429744eb11d92c44026fc5fc53caa4a06709382b5f13978f3c26c4cbd", ""]
             ],
-           
+
             "cmake_generate_args": [
                 "-G",
                 "\"Visual Studio 16 2019\""
@@ -66,7 +66,23 @@
             ],
             "cmake_generate_args": [
                "-G", "Xcode",
-               "-DCMAKE_TOOLCHAIN_FILE=../../../../Scripts/cmake/Platform/Mac/Toolchain_mac.cmake"
+               "-DCMAKE_TOOLCHAIN_FILE=../../../../Scripts/cmake/Platform/Mac/Toolchain_mac.cmake",
+               "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
+            ],
+            "custom_test_cmd" : [
+               "./test_Freetype_mac.sh"
+           ]
+         },
+         "Mac-arm64":{
+            "depends_on_packages" :[ 
+               ["zlib-1.2.11-rev5-mac-arm64", "bedaa7cf67c9bdcade1dd2f3fed9636ba4589da8b3bd50c7b0af8c96654769b9", ""]
+            ],
+            "cmake_generate_args": [
+               "-G", "Xcode",
+               "-DCMAKE_TOOLCHAIN_FILE=../../../../Scripts/cmake/Platform/Mac/Toolchain_mac.cmake",
+               "-DCMAKE_APPLE_SILICON_PROCESSOR=arm64",
+               "-DCMAKE_TOOLCHAIN_PLATFORM_NAME=Mac-arm64",
+               "-DCMAKE_POLICY_VERSION_MINIMUM=3.5"
             ],
             "custom_test_cmd" : [
                "./test_Freetype_mac.sh"
@@ -113,4 +129,3 @@
       }
    }
 }
-

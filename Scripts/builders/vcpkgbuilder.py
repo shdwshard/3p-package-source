@@ -54,6 +54,10 @@ class VcpkgBuilder(object):
                 True: 'x64-osx',
                 False: 'x64-osx-dynamic',
             },
+            'darwin-arm64': {
+                True: 'arm64-osx',
+                False: 'arm64-osx-dynamic',
+            },
             'windows': {
                 True: 'x64-windows-static',
                 False: 'x64-windows',
@@ -107,7 +111,7 @@ class VcpkgBuilder(object):
         if not path_folder.is_dir():
             print(f'deleteFolder:  Folder is already not present: {path_folder}')
             return
-        
+
         if platform.system() == 'Windows':
             call_result = subprocess.run(' '.join(['rmdir', '/Q', '/S', str(path_folder)]),
                                         shell=True,
@@ -172,9 +176,16 @@ class VcpkgBuilder(object):
                 cwd=self.vcpkgDir,
             )
         else:
+            bootstrap_env = os.environ.copy()
+            # For Apple Silicon (arm64), use Apple's Clang compiler
+            if platform.system() == 'Darwin' and (platform.machine() == 'arm64' or self._triplet.startswith('arm64-osx')):
+                bootstrap_env['CXX'] = 'clang++'
+                bootstrap_env['CC'] = 'clang'
+
             subprocess.check_call(
                 [self.vcpkgDir / 'bootstrap-vcpkg.sh', '-disableMetrics'],
                 cwd=self.vcpkgDir,
+                env=bootstrap_env
             )
 
     def patch(self, patchFile: pathlib.Path):
@@ -229,4 +240,3 @@ class VcpkgBuilder(object):
     def writeCMakeFindFile(self, packageDir: pathlib.Path, template, templateEnv:dict, overwrite_find_file:str or None):
         cmakeFindFile = packageDir / f'Find{overwrite_find_file or self.packageName}.cmake'
         cmakeFindFile.write_text(string.Template(template).substitute(templateEnv))
-
