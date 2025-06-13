@@ -23,7 +23,7 @@ def main():
     parser.add_argument(
         '--platform-name',
         dest='platformName',
-        choices=['windows', 'mac', 'linux', 'linux-aarch64'],
+        choices=['windows', 'mac', 'mac-arm64', 'linux', 'linux-aarch64'],
         default=VcpkgBuilder.defaultPackagePlatformName(),
     )
     args = parser.parse_args()
@@ -31,6 +31,7 @@ def main():
         'windows': 'windows',
         'android': 'android',
         'mac': 'mac',
+        'mac-arm64': 'mac',
         'ios': 'ios',
         'linux': 'linux',
         'linux-aarch64': 'linux'
@@ -51,7 +52,7 @@ def main():
 
     with TemporaryDirectory() as tempdir:
         tempdir = Path(tempdir)
-        
+
         builder = VcpkgBuilder(
             packageName='v-hacd',
             portName='v-hacd',
@@ -59,11 +60,11 @@ def main():
             targetPlatform=vcpkg_platform,
             static=True
         )
-        
+
         builder.cloneVcpkg('751fc199af8d33eb300af5edbd9e3b77c48f0bca')
         builder.bootstrap()
         builder.build()
-        
+
         builder.copyBuildOutputTo(
             outputDir,
             extraFiles={
@@ -72,7 +73,7 @@ def main():
             },
             subdir='v-hacd'
         )
-        
+
         # vcpkg's commit 751fc19 uses v-hacd version 2.3 at commit 1a49edf
         builder.writePackageInfoFile(
             outputDir,
@@ -83,7 +84,7 @@ def main():
                 'LicenseFile': 'v-hacd/LICENSE'
             },
         )
-        
+
         shutil.copy2(
             src=cmakeFindFile,
             dst=outputDir / 'Findv-hacd.cmake'

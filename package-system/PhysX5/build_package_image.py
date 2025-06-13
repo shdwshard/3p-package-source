@@ -37,7 +37,7 @@ class PhysXBuilder(object):
             cwd=self.workingDir,
             env=self.env
         )
-        
+
         # nVidia CMakeModules (downloaded while building PhysX) do not cover ios or android
         # bin folder names yet, so they appear as UNKNOWN.
         self.platform_params = { 
@@ -46,6 +46,7 @@ class PhysXBuilder(object):
             'linux'         : ('linux', 'linux.clang', 'linux', False),
             'linux-aarch64' : ('linux-aarch64', 'linux.aarch64', 'linux-aarch64', False),
             'mac'           : ('mac64', 'mac.x86_64', 'mac64', True),
+            'mac-arm64'     : ('mac64', 'mac.x86_64', 'mac64', True),
             'ios'           : ('ios64', 'UNKNOWN', 'ios64', True),
             'android'       : ('android-arm64-v8a', 'UNKNOWN', "android-29", False)
         }
@@ -92,18 +93,18 @@ class PhysXBuilder(object):
         self.check_call(
             ['git', 'checkout', lockToCommit,],
         )
-        if self.platform in ['ios', 'mac']:
+        if self.platform in ['ios', 'mac', 'mac-arm64']:
             self.check_call(
                 ['git', 'apply', '--whitespace=fix', (pathlib.Path(__file__).parent / 'build_fix.patch').absolute()]
             )
 
-            
+
     def preparePreset(self, buildAsStaticLibs, config):
         preset_index = 0
         preset_file = self.workingDir / 'physx' / 'buildtools' / 'presets' / 'public' / f'{self.platform_params[self.platform][preset_index]}.xml'
         content = self.readFile(preset_file)
         content = re.sub('name="PX_GENERATE_STATIC_LIBRARIES" value="(True|False)"', f'name="PX_GENERATE_STATIC_LIBRARIES" value="{buildAsStaticLibs}"', content, flags = re.M)
-        
+
         if self.platform == 'windows':
             content = re.sub('name="PX_BUILDSNIPPETS" value="(True|False)"', f'name="PX_BUILDSNIPPETS" value="False"', content, flags = re.M)
             content = re.sub('name="PX_BUILDPVDRUNTIME" value="(True|False)"', f'name="PX_BUILDPVDRUNTIME" value="False"', content, flags = re.M)
@@ -112,11 +113,11 @@ class PhysXBuilder(object):
             else:
                 content = re.sub('name="NV_USE_DEBUG_WINCRT" value="(True|False)"', f'name="NV_USE_DEBUG_WINCRT" value="False"', content, flags = re.M)
             content = re.sub('name="NV_USE_STATIC_WINCRT" value="(True|False)"', f'name="NV_USE_STATIC_WINCRT" value="False"', content, flags = re.M) # sets dynamic runtime usage
-            
+
         elif self.platform == 'linux' or self.platform == 'linux-aarch64':
             content = re.sub('name="PX_BUILDSNIPPETS" value="(True|False)"', f'name="PX_BUILDSNIPPETS" value="False"', content, flags = re.M)
             content = re.sub('name="PX_BUILDPVDRUNTIME" value="(True|False)"', f'name="PX_BUILDPVDRUNTIME" value="False"', content, flags = re.M)
-    
+
         self.writeFile(preset_file, content)
 
         # Ignore poison-system-directories warning when building mac/ios caused 
@@ -126,11 +127,24 @@ class PhysXBuilder(object):
             content = self.readFile(cmake_file)
             content = re.sub('-Werror', r'-Werror -Wno-poison-system-directories', content, flags = re.M)
             self.writeFile(cmake_file, content)
-        
+        elif self.platform == 'mac-arm64':
+            # For mac-arm64, use the mac platform's CMakeLists.txt file
+            mac_cmake_file = self.workingDir / 'physx' / 'source' / 'compiler' / 'cmake' / 'mac' / 'CMakeLists.txt'
+            content = self.readFile(mac_cmake_file)
+            content = re.sub('-Werror', r'-Werror -Wno-poison-system-directories', content, flags = re.M)
+
+            # Create the mac-arm64 directory if it doesn't exist
+            mac_arm64_dir = self.workingDir / 'physx' / 'source' / 'compiler' / 'cmake' / 'mac-arm64'
+            mac_arm64_dir.mkdir(parents=True, exist_ok=True)
+
+            # Write the modified CMakeLists.txt to the mac-arm64 directory
+            mac_arm64_cmake_file = mac_arm64_dir / 'CMakeLists.txt'
+            self.writeFile(mac_arm64_cmake_file, content)
+
     def cleanUpLibs(self, buildAsStaticLibs):
         static_bin_dir = self.workingDir / 'physx' / 'bin' / 'static'
         shared_bin_dir = self.workingDir / 'physx' / 'bin' / 'shared'
-    
+
         # Remove dynamic libraries, but copy some missing static libs from
         # the shared builds into the static lib folder. Also freeglut is not
         # necessary for PhysX.
@@ -160,38 +174,27 @@ class PhysXBuilder(object):
                         os.remove(static_bin_dir / config / 'freeglut.dll')
 
                 shutil.rmtree(shared_bin_dir)
-            
+
     def build(self, buildAsStaticLibs):
         physx_dir = self.workingDir / 'physx'
 
-        # Update the packman URLs
-        packman_dir = physx_dir / 'buildtools' / 'packman'
-        check_call_packman_update = functools.partial(subprocess.check_call,
-            cwd=packman_dir, # generate_projects script will fail if not called from physx directory
-            env=self.env
-        )
-
-        if self._hostPlatformLower == 'windows':
-            update_pacman_call = [ str(packman_dir / 'packman.cmd'), 'update', '-y']
-        else:
-            update_pacman_call = [ str(packman_dir / 'packman'), 'update', '-y']
-
-        check_call_packman_update(update_pacman_call)        
+        # Skip packman update as it requires the 'cgi' module which is not available in Python 3.13
+        print("Skipping packman update step due to Python 3.13 compatibility issues")
         preset, bin_folder, install_folder, is_multiconfig = self.platform_params[self.platform]
-        
+
         if self._hostPlatformLower == 'windows':
             generate_projects_cmd =  str(physx_dir / 'generate_projects.bat')
         else:
             generate_projects_cmd = str(physx_dir / 'generate_projects.sh')
-            
+
         check_call_physx_dir = functools.partial(subprocess.check_call,
             cwd=physx_dir, # generate_projects script will fail if not called from physx directory
             env=self.env
         )
-        
+
         for config in ('release', 'profile', 'checked', 'debug'):
             self.preparePreset(buildAsStaticLibs, config);
-            
+
             # Generate
             generate_call =[generate_projects_cmd, preset,]
             print(generate_call)
@@ -214,12 +217,12 @@ class PhysXBuilder(object):
                     cmake_build_call =['cmake', '--build', build_dir]
             print(cmake_build_call)
             self.check_call(cmake_build_call)
-                
+
         # Delete bin inside install folder if exists (we'll copy them later in copyBuildOutputTo)
         bin_install_folder = physx_dir / 'install' / install_folder / 'PhysX' / 'bin'
         if bin_install_folder.exists():
             shutil.rmtree(bin_install_folder)
-        
+
         # Rename bin output folder to static/shared, avoiding the platform name in bin folder makes the FindPhysX.cmake simpler.
         if buildAsStaticLibs:
             shutil.move(physx_dir / 'bin' / bin_folder, physx_dir / 'bin' / 'static')
@@ -227,7 +230,7 @@ class PhysXBuilder(object):
         else:
             shutil.move(physx_dir / 'bin' / bin_folder, physx_dir / 'bin' / 'shared')
             shutil.move(physx_dir / 'install' / install_folder, physx_dir / 'install' / 'shared')
-             
+
         self.cleanUpLibs(buildAsStaticLibs)
 
     def build_all(self):
@@ -240,7 +243,7 @@ class PhysXBuilder(object):
     def copyBuildOutputTo(self, packageDir: pathlib.Path):
         if packageDir.exists():
             shutil.rmtree(packageDir)
-            
+
 
         shutil.copytree(
             src=self.workingDir / 'physx' / 'install' / 'static' / 'PhysX',
@@ -279,7 +282,7 @@ class PhysXBuilder(object):
             src=cmakeFindFile,
             dst=dst
         )
-        
+
         extraLibsPerPlatform = {
             'windows': [
                 ['\\${EXTRA_SHARED_LIBS}',
@@ -309,6 +312,10 @@ class PhysXBuilder(object):
                 ['\\${EXTRA_SHARED_LIBS}', ''],
                 ['\\${EXTRA_STATIC_LIBS}', ''],
             ],
+            'mac-arm64': [
+                ['\\${EXTRA_SHARED_LIBS}', ''],
+                ['\\${EXTRA_STATIC_LIBS}', ''],
+            ],
             # iOS has its own FindPhysX file where it doesn't need to do any adjustments.
             'ios': [
             ],
@@ -317,7 +324,7 @@ class PhysXBuilder(object):
                 ['\\${EXTRA_STATIC_LIBS}', ''],
             ],
         }
-        
+
         content = self.readFile(dst)
         for extraLibs in extraLibsPerPlatform[self.platform]:
             content = re.sub(extraLibs[0], extraLibs[1], content, flags = re.M)
@@ -336,11 +343,11 @@ def main():
     parser.add_argument(
         '--platform-name',
         dest='platformName',
-        choices=['windows', 'linux', 'linux-aarch64', 'android', 'mac', 'ios'],
+        choices=['windows', 'linux', 'linux-aarch64', 'android', 'mac', 'mac-arm64', 'ios'],
     )
     args = parser.parse_args()
 
-    if args.platformName == 'mac' or args.platformName == 'ios':
+    if args.platformName == 'mac' or args.platformName == 'mac-arm64' or args.platformName == 'ios':
         # Necessary to build PhysX SDK on arm-based Mac machines
         # since the build process will try to use an x86_64 python3
         # package that PhysX downloads itself. This environment variable
@@ -359,9 +366,9 @@ def main():
     with TemporaryDirectory() as tempdir:
         # Package Name
         packageName = f'{args.package_name}-{args.package_rev}-{args.platformName}'
-        
+
         # Version 5.1.1 commits
-        if args.platformName == 'mac':
+        if args.platformName == 'mac' or args.platformName == 'mac-arm64':
             commit = 'bbf7c0de9738c99046c9d6daf57779b4decf95ef' # Commit of PR 51 on top of 5.1.1 version
         elif args.platformName == 'ios':
             commit = '5420931fd1e60aaa4df2688d07557722d021f034' # Commit of PR 49 on top of 5.1.1 version
@@ -369,17 +376,17 @@ def main():
             commit = '8ac3e3601d1333ae2a967995f49b338d4e188215' # Commit of PR 40 on top of 5.1.1 version
         else:
             commit = '0bbcff3d0c541325f4d14c36ee18f24e22e35e6e' # Commit for 5.1.1 version
-            
+
         tempdir = Path(tempdir)
         builder = PhysXBuilder(workingDir=tempdir,
                                basePackageSystemDir=packageSystemDir,
                                targetPlatform=args.platformName)
         builder.clone(lockToCommit=commit)
-        
+
         builder.build_all()
 
         builder.copyBuildOutputTo(packageRoot/'PhysX')
-        
+
         builder.writePackageInfoFile(
             packageRoot,
             settings={
@@ -389,7 +396,7 @@ def main():
                 'LicenseFile': 'PhysX/LICENSE.md'
             },
         )
-        
+
         builder.writeCMakeFindFile(
             packageRoot,
             cmakeFindFile

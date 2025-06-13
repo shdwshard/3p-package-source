@@ -1,0 +1,23 @@
+diff --git a/Mac/BuildScript/build-installer.py b/Mac/BuildScript/build-installer.py
+index 8f33537..dad3d0c 100755
+--- a/Mac/BuildScript/build-installer.py
++++ b/Mac/BuildScript/build-installer.py
+@@ -252,7 +252,7 @@ def library_recipes():
+             buildrecipe=build_universal_openssl,
+             configure_pre=[
+                 '--openssldir=%s/etc/openssl'%(
+-                    shellQuote(os.path.join(
++                    os.path.join(
+                         '/', 'Library', 'Frameworks',
+                         'Python.framework', 'Versions', getVersion()
+                     )
+@@ -260,6 +260,9 @@ def library_recipes():
+             ],
+             ),
+ 
++        # Skip building OpenSSL - we'll use the pre-compiled package
++        return result
++
+         if getDeptargetTuple() < (10, 5):
+             # OpenSSL fails to build with Xcode 2.5 (on OS X 10.4)
+             result.append(dict(

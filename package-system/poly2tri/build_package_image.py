@@ -23,7 +23,7 @@ def main():
     parser.add_argument(
         '--platform-name',
         dest='platformName',
-        choices=['windows', 'mac', 'linux', 'linux-aarch64'],
+        choices=['windows', 'mac', 'mac-arm64', 'linux', 'linux-aarch64'],
         default=VcpkgBuilder.defaultPackagePlatformName(),
     )
     args = parser.parse_args()
@@ -32,6 +32,7 @@ def main():
             'windows': 'windows',
             'android': 'android',
             'mac': 'mac',
+            'mac-arm64': 'mac',
             'ios': 'ios',
             'linux': 'linux',
             'linux-aarch64': 'linux' }
@@ -52,10 +53,10 @@ def main():
     # the more recent version from https://github.com/jhasse/poly2tri repo (7f0487a),
     # patching vcpkg to build jhasse version.
     buildJhasseRepoPatch = (packageSourceDir / 'build-poly2tri-jhasse-repo.patch')
-        
+
     with TemporaryDirectory() as tempdir:
         tempdir = Path(tempdir)
-        
+
         builder = VcpkgBuilder(
             packageName='poly2tri',
             portName='poly2tri',
@@ -63,12 +64,12 @@ def main():
             targetPlatform=vcpkg_platform,
             static=True
         )
-        
+
         builder.cloneVcpkg('751fc199af8d33eb300af5edbd9e3b77c48f0bca')
         builder.patch(buildJhasseRepoPatch)
         builder.bootstrap()
         builder.build()
-        
+
         builder.copyBuildOutputTo(
             outputDir,
             extraFiles={
@@ -77,7 +78,7 @@ def main():
             },
             subdir='poly2tri'
         )
-        
+
         # vcpkg's commit 751fc19 uses poly2tri's commit 7f0487a (after patch)
         builder.writePackageInfoFile(
             outputDir,
@@ -88,7 +89,7 @@ def main():
                 'LicenseFile': 'poly2tri/LICENSE'
             },
         )
-        
+
         shutil.copy2(
             src=cmakeFindFile,
             dst=outputDir / 'Findpoly2tri.cmake'

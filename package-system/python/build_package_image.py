@@ -19,14 +19,31 @@ folder_names = { #   subfolder     interpreter     build script
     'windows'       : ('win_x64'    , 'python/python.exe', 'build_python.bat')
 }
 
-platformsys = platform.system().lower()
-# For linux, we may support aarch64 architecture as well as the default x86_64
-if platformsys == 'linux' and platform.machine() == 'aarch64':
-    print("Linux aarch64 builds not supported by this script")
-    sys.exit(1)
+# Add support for platform-specific builds
+platform_specific_folder_names = {
+    'mac-arm64'     : ('darwin_arm64', 'Python.framework/Versions/3.10/bin/python3', 'make-python.sh')
+}
 
-# intentionally generate a keyerror if its not a good platform:
-subfolder_name, binary_relpath, build_script = folder_names[platformsys]
+import argparse
+
+# Parse command line arguments
+parser = argparse.ArgumentParser(description='Build Python package')
+parser.add_argument('--platform', dest='platform', help='Platform to build for (e.g., mac-arm64)')
+args, unknown = parser.parse_known_args()
+
+if args.platform and args.platform in platform_specific_folder_names:
+    # Use platform-specific folder names
+    subfolder_name, binary_relpath, build_script = platform_specific_folder_names[args.platform]
+else:
+    # Use default folder names based on system
+    platformsys = platform.system().lower()
+    # For linux, we may support aarch64 architecture as well as the default x86_64
+    if platformsys == 'linux' and platform.machine() == 'aarch64':
+        print("Linux aarch64 builds not supported by this script")
+        sys.exit(1)
+
+    # intentionally generate a keyerror if its not a good platform:
+    subfolder_name, binary_relpath, build_script = folder_names[platformsys]
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 build_script_dir = os.path.join(script_dir, subfolder_name)

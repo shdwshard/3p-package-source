@@ -68,7 +68,7 @@ class NvClothBuilder(object):
         self.check_call(
             ['git', 'checkout', 'pr-58',],
         )
-        
+
         # Remove /LTCG and /GL flags as it's causing compile warnings
         if self.platform == 'windows':
             windows_cmake_file = self.workingDir / 'NvCloth/compiler/cmake/windows/CMakeLists.txt'
@@ -80,7 +80,7 @@ class NvClothBuilder(object):
             f = open(windows_cmake_file, 'w')
             f.write(content)
             f.close()
-        
+
         # Remove warnings as errors for iOS
         if self.platform == 'ios':
             ios_cmake_file = self.workingDir / 'NvCloth/compiler/cmake/ios/CMakeLists.txt'
@@ -95,7 +95,7 @@ class NvClothBuilder(object):
     def build(self):
         cmake_scripts_path = os.path.abspath(os.path.join(self.packageSystemDir, '../Scripts/cmake'))
         nvcloth_dir = self.workingDir / 'NvCloth'
-        
+
         ly_3rdparty_path = os.getenv('LY_3RDPARTY_PATH')
 
         folder_names = { 
@@ -109,6 +109,21 @@ class NvClothBuilder(object):
                 f'-DPX_OUTPUT_DLL_DIR={nvcloth_dir}/bin/osx64-cmake',
                 f'-DPX_OUTPUT_LIB_DIR={nvcloth_dir}/lib/osx64-cmake',
                 f'-DPX_OUTPUT_EXE_DIR={nvcloth_dir}/bin/osx64-cmake'
+            ], []),
+            'mac-arm64' : ([
+                '-G', 'Xcode',
+                '-DTARGET_BUILD_PLATFORM=mac',
+                '-DNV_CLOTH_ENABLE_CUDA=0', '-DUSE_CUDA=0',
+                '-DPX_GENERATE_GPU_PROJECTS=0',
+                '-DPX_STATIC_LIBRARIES=1',
+                f'-DCMAKE_TOOLCHAIN_FILE={cmake_scripts_path}/Platform/Mac/Toolchain_mac.cmake',
+                '-DCMAKE_APPLE_SILICON_PROCESSOR=arm64',
+                '-DCMAKE_TOOLCHAIN_PLATFORM_NAME=Mac-arm64',
+                '-DCMAKE_OSX_DEPLOYMENT_TARGET=11.0',
+                '-DCMAKE_POLICY_VERSION_MINIMUM=3.5',
+                f'-DPX_OUTPUT_DLL_DIR={nvcloth_dir}/bin/osx64-arm64-cmake',
+                f'-DPX_OUTPUT_LIB_DIR={nvcloth_dir}/lib/osx64-arm64-cmake',
+                f'-DPX_OUTPUT_EXE_DIR={nvcloth_dir}/bin/osx64-arm64-cmake'
             ], []),
             'ios'       : ([
                 '-G', 'Xcode',
@@ -166,13 +181,13 @@ class NvClothBuilder(object):
                 f'-DPX_OUTPUT_EXE_DIR={nvcloth_dir}/bin/android-arm64-v8a-cmake'
             ], []) # Android needs to have ninja in the path
         }
-        
+
         # intentionally generate a keyerror if its not a good platform:
         cmake_generation, cmake_build = folder_names[self.platform]
-        
+
         build_dir = os.path.join(nvcloth_dir, 'build', self.platform)
         os.makedirs(build_dir, exist_ok=True)
-        
+
         # Generate
         cmake_generate_call =['cmake', f'{nvcloth_dir}/compiler/cmake/{self.platform}', f'-B{build_dir}']
         if cmake_generation:
@@ -191,7 +206,7 @@ class NvClothBuilder(object):
     def copyBuildOutputTo(self, packageDir: pathlib.Path):
         if packageDir.exists():
             shutil.rmtree(packageDir)
-    
+
         for dirname in ('NvCloth/lib', 'NvCloth/include', 'NvCloth/extensions/include', 'PxShared/include'):
             shutil.copytree(
                 src=self.workingDir / dirname,
@@ -220,7 +235,7 @@ def main():
     parser.add_argument(
         '--platform-name',
         dest='platformName',
-        choices=['windows', 'linux', 'linux-aarch64', 'android', 'mac', 'ios'],
+        choices=['windows', 'linux', 'linux-aarch64', 'android', 'mac', 'mac-arm64', 'ios'],
         default=VcpkgBuilder.defaultPackagePlatformName(),
     )
     args = parser.parse_args()
@@ -228,6 +243,7 @@ def main():
             'windows': 'windows',
             'android': 'android',
             'mac': 'mac',
+            'mac-arm64': 'mac',
             'ios': 'ios',
             'linux': 'linux',
             'linux-aarch64': 'linux' }
@@ -250,7 +266,7 @@ def main():
         builder.clone('8e100cca5888d09f40f4721cc433f284b1841e65')
         builder.build()
         builder.copyBuildOutputTo(packageRoot/'NvCloth')
-        
+
         # Version v1.1.6-4-gd243404-pr58 describes commit 8e100cc,
         # which is 4 commits above 1.1.6 release (commit d243404),
         # plus pull request 58 applied on top.
@@ -263,7 +279,7 @@ def main():
                 'LicenseFile': 'NvCloth/NvCloth/license.txt',
             },
         )
-        
+
         shutil.copy2(
             src=cmakeFindFile,
             dst=packageRoot / 'FindNvCloth.cmake'

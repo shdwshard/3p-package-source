@@ -1,0 +1,152 @@
+diff --git a/Mac/BuildScript/build-installer.py b/Mac/BuildScript/build-installer.py
+index 8f33537..dad3d0c 100755
+--- a/Mac/BuildScript/build-installer.py
++++ b/Mac/BuildScript/build-installer.py
+@@ -808,113 +808,35 @@ def verifyChecksum(path, checksum):
+ def build_universal_openssl(basedir, archList):
+     """
+     Special case build recipe for universal build of openssl.
+-
+-    The upstream OpenSSL build system does not directly support
+-    OS X universal builds.  We need to build each architecture
+-    separately then lipo them together into fat libraries.
++    
++    Instead of building OpenSSL from source, use the pre-compiled
++    OpenSSL package from the O3DE package system.
+     """
++    import glob
++    import subprocess
+ 
+-    # OpenSSL fails to build with Xcode 2.5 (on OS X 10.4).
+-    # If we are building on a 10.4.x or earlier system,
+-    # unilaterally disable assembly code building to avoid the problem.
+-    no_asm = int(platform.release().split(".")[0]) < 9
+-
+-    def build_openssl_arch(archbase, arch):
+-        "Build one architecture of openssl"
+-        arch_opts = {
+-            "i386": ["darwin-i386-cc"],
+-            "x86_64": ["darwin64-x86_64-cc", "enable-ec_nistp_64_gcc_128"],
+-            "arm64": ["darwin64-arm64-cc"],
+-            "ppc": ["darwin-ppc-cc"],
+-            "ppc64": ["darwin64-ppc-cc"],
+-        }
+-
+-        # Somewhere between OpenSSL 1.1.0j and 1.1.1c, changes cause the
+-        # "enable-ec_nistp_64_gcc_128" option to get compile errors when
+-        # building on our 10.6 gcc-4.2 environment.  There have been other
+-        # reports of projects running into this when using older compilers.
+-        # So, for now, do not try to use "enable-ec_nistp_64_gcc_128" when
+-        # building for 10.6.
+-        if getDeptargetTuple() == (10, 6):
+-            arch_opts['x86_64'].remove('enable-ec_nistp_64_gcc_128')
+-
+-        configure_opts = [
+-            "no-idea",
+-            "no-mdc2",
+-            "no-rc5",
+-            "no-zlib",
+-            "no-ssl3",
+-            # "enable-unit-test",
+-            "shared",
+-            "--prefix=%s"%os.path.join("/", *FW_VERSION_PREFIX),
+-            "--openssldir=%s"%os.path.join("/", *FW_SSL_DIRECTORY),
+-        ]
+-        if no_asm:
+-            configure_opts.append("no-asm")
+-        runCommand(" ".join(["perl", "Configure"]
+-                        + arch_opts[arch] + configure_opts))
+-        runCommand("make depend")
+-        runCommand("make all")
+-        runCommand("make install_sw DESTDIR=%s"%shellQuote(archbase))
+-        # runCommand("make test")
+-        return
+-
+-    srcdir = os.getcwd()
+-    universalbase = os.path.join(srcdir, "..",
+-                        os.path.basename(srcdir) + "-universal")
+-    os.mkdir(universalbase)
+-    archbasefws = []
+-    for arch in archList:
+-        # fresh copy of the source tree
+-        archsrc = os.path.join(universalbase, arch, "src")
+-        shutil.copytree(srcdir, archsrc, symlinks=True)
+-        # install base for this arch
+-        archbase = os.path.join(universalbase, arch, "root")
+-        os.mkdir(archbase)
+-        # Python framework base within install_prefix:
+-        # the build will install into this framework..
+-        # This is to ensure that the resulting shared libs have
+-        # the desired real install paths built into them.
+-        archbasefw = os.path.join(archbase, *FW_VERSION_PREFIX)
+-
+-        # build one architecture
+-        os.chdir(archsrc)
+-        build_openssl_arch(archbase, arch)
+-        os.chdir(srcdir)
+-        archbasefws.append(archbasefw)
+-
+-    # copy arch-independent files from last build into the basedir framework
++    print("Using pre-compiled OpenSSL package instead of building from source")
++    
++    # Find the OpenSSL package in the packages directory
++    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../../.."))
++    openssl_package_dir = os.path.join(repo_root, "3p-package-source", "packages")
++    openssl_package_pattern = os.path.join(openssl_package_dir, "OpenSSL-*-mac-arm64.tar.xz")
++    openssl_packages = glob.glob(openssl_package_pattern)
++    
++    if not openssl_packages:
++        fatal("Could not find OpenSSL package in %s" % openssl_package_dir)
++    
++    openssl_package = openssl_packages[0]
++    print("Using OpenSSL package: %s" % openssl_package)
++    
++    # Extract the OpenSSL package to a temporary directory
++    temp_dir = os.path.join(os.path.dirname(basedir), "openssl_temp")
++    os.makedirs(temp_dir, exist_ok=True)
++    subprocess.run(["tar", "-xf", openssl_package, "-C", temp_dir], check=True)
++    
++    # Create the necessary directories in the basedir
+     basefw = os.path.join(basedir, *FW_VERSION_PREFIX)
+-    shutil.copytree(
+-            os.path.join(archbasefw, "include", "openssl"),
+-            os.path.join(basefw, "include", "openssl")
+-            )
+-
+-    shlib_version_number = grepValue(os.path.join(archsrc, "Makefile"),
+-            "SHLIB_VERSION_NUMBER")
+-    #   e.g. -> "1.0.0"
+-    libcrypto = "libcrypto.dylib"
+-    libcrypto_versioned = libcrypto.replace(".", "."+shlib_version_number+".")
+-    #   e.g. -> "libcrypto.1.0.0.dylib"
+-    libssl = "libssl.dylib"
+-    libssl_versioned = libssl.replace(".", "."+shlib_version_number+".")
+-    #   e.g. -> "libssl.1.0.0.dylib"
+-
+-    try:
+-        os.mkdir(os.path.join(basefw, "lib"))
+-    except OSError:
+-        pass
+-
+-    # merge the individual arch-dependent shared libs into a fat shared lib
+-    archbasefws.insert(0, basefw)
+-    for (lib_unversioned, lib_versioned) in [
+-                (libcrypto, libcrypto_versioned),
+-                (libssl, libssl_versioned)
+-            ]:
+-        runCommand("lipo -create -output " +
+-                    " ".join(shellQuote(
+-                            os.path.join(fw, "lib", lib_versioned))
+-                                    for fw in archbasefws))
+-        # and create an unversioned symlink of it
++    os.makedirs(os.path.join(basefw, "include"), exist_ok=True)
++    os.makedirs(os.path.join(basefw, "lib"), exist_ok=True)
++    
++    # Copy the OpenSSL headers and libraries to the basedir
++    shutil.copytree(os.path.join(temp_dir, "OpenSSL", "include", "openssl"), os.path.join(basefw, "include", "openssl"))
++    
++    for lib in glob.glob(os.path.join(temp_dir, "OpenSSL", "lib", "*.dylib")):
++        shutil.copy(lib, os.path.join(basefw, "lib"))
++    
++    # Clean up
++    shutil.rmtree(temp_dir)

@@ -156,6 +156,16 @@ if [ $retVal -ne 0 ]; then
 fi
 
 echo ""
+echo "---------------- adding arm64 support to python build ----------------"
+echo ""
+$VENV_BIN_DIR/python3 $SCRIPT_DIR/add_arm64_support.py
+retVal=$?
+if [ $retVal -ne 0 ]; then
+    echo "Could not add arm64 support to python build!"
+    exit $retVal
+fi
+
+echo ""
 echo "---------------- updating TCL version and download URL ----------------"
 echo ""
 $VENV_BIN_DIR/python3 $SCRIPT_DIR/update_tcl_version.py
@@ -164,6 +174,27 @@ if [ $retVal -ne 0 ]; then
     echo "Could not update TCL version and download URL!"
     exit $retVal
 fi
+
+echo ""
+echo "---------------- fixing universal arch parameter ----------------"
+echo ""
+$VENV_BIN_DIR/python3 $SCRIPT_DIR/fix_universal_arch_param.py
+retVal=$?
+if [ $retVal -ne 0 ]; then
+    echo "Could not fix universal arch parameter!"
+    exit $retVal
+fi
+
+echo ""
+echo "---------------- fixing library warnings ----------------"
+echo ""
+$VENV_BIN_DIR/python3 $SCRIPT_DIR/fix_library_warnings.py
+retVal=$?
+if [ $retVal -ne 0 ]; then
+    echo "Could not fix library warnings!"
+    exit $retVal
+fi
+
 
 # We'll use the pre-compiled OpenSSL package after the Python build is complete
 
@@ -175,7 +206,7 @@ cd Mac
 cd BuildScript
 
 # the following env vars get around a problem compiling tcl/tk
-ac_cv_header_libintl_h=no ac_cv_lib_intl_textdomain=no tcl_cv_strtod_buggy=1 ac_cv_func_strtod=yes SDK_TOOLS_BIN=$VENV_BIN_DIR $VENV_BIN_DIR/python3 ./build-installer.py --universal-archs=intel-64 --build-dir $SCRIPT_DIR/temp/python_build --third-party=$SCRIPT_DIR/temp/downloaded_packages --dep-target=10.15
+ac_cv_header_libintl_h=no ac_cv_lib_intl_textdomain=no tcl_cv_strtod_buggy=1 ac_cv_func_strtod=yes SDK_TOOLS_BIN=$VENV_BIN_DIR $VENV_BIN_DIR/python3 ./build-installer.py --universal-archs=universal2 --build-dir $SCRIPT_DIR/temp/python_build --third-party=$SCRIPT_DIR/temp/downloaded_packages --dep-target=11.0
 retVal=$?
 if [ $retVal -ne 0 ]; then
     echo "Could not build python!"
@@ -227,7 +258,7 @@ install_name_tool -id @rpath/Python.framework/Versions/Current/Python $FRAMEWORK
 echo ""
 echo "---------------- rsync package layout into $SCRIPT_DIR/package ----------------"
 echo ""
-mdkir $SCRIPT_DIR/package
+mkdir -p $SCRIPT_DIR/package
 rsync -avu --delete "$FRAMEWORK_OUTPUT_FOLDER/" "$SCRIPT_DIR/package"
 
 echo ""

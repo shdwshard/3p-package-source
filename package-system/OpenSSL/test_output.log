@@ -1,0 +1,2 @@
+Validating version text 'OpenSSL 1.1.1t  7 Feb 2023': FAILURE!
+ OpenSSL OPENSSL_VERSION_TEXT returned invalid text 'OpenSSL 1.1.1o  3 May 2022'. Expecting 'OpenSSL 1.1.1t  7 Feb 2023'.

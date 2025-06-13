@@ -54,7 +54,7 @@ class VcpkgBuilder(object):
                 True: 'x64-osx',
                 False: 'x64-osx-dynamic',
             },
-            'darwin-arm64': {
+            'mac-arm64': {
                 True: 'arm64-osx',
                 False: 'arm64-osx-dynamic',
             },
