@@ -22,8 +22,8 @@ def fix_universal_arch_option():
     new_content = re.sub(pattern, replacement, content)
 
     # Fix the parameter name in the options processing
-    pattern = r"(\s+elif k in \('--universal-archs', \):.*?\n)(\s+if v in UNIVERSALOPTS:)"
-    replacement = r"\1        elif k in ('--universal-arch', ):\n\2"
+    pattern = r"(\s+elif k in \('--universal-archs', \):)\s*\n(\s+if v in UNIVERSALOPTS:)"
+    replacement = r"\1\n            if v in UNIVERSALOPTS:\n                universal = v\n            else:\n                usage(1, 'Unknown universal architecture: %s' % v)\n        elif k in ('--universal-arch', ):\n\2"
 
     # Replace in the content
     new_content = re.sub(pattern, replacement, new_content, flags=re.DOTALL)

@@ -186,12 +186,42 @@ if [ $retVal -ne 0 ]; then
 fi
 
 echo ""
+echo "---------------- fixing universal arch option ----------------"
+echo ""
+$VENV_BIN_DIR/python3 $SCRIPT_DIR/fix_universal_arch_option.py
+retVal=$?
+if [ $retVal -ne 0 ]; then
+    echo "Could not fix universal arch option!"
+    exit $retVal
+fi
+
+echo ""
 echo "---------------- fixing library warnings ----------------"
 echo ""
 $VENV_BIN_DIR/python3 $SCRIPT_DIR/fix_library_warnings.py
 retVal=$?
 if [ $retVal -ne 0 ]; then
     echo "Could not fix library warnings!"
+    exit $retVal
+fi
+
+echo ""
+echo "---------------- fixing OpenSSL build to skip i386 on ARM64 ----------------"
+echo ""
+$VENV_BIN_DIR/python3 $SCRIPT_DIR/fix_openssl_build.py
+retVal=$?
+if [ $retVal -ne 0 ]; then
+    echo "Could not fix OpenSSL build!"
+    exit $retVal
+fi
+
+echo ""
+echo "---------------- fixing universal-archs option to properly set UNIVERSALARCHS and ARCHLIST ----------------"
+echo ""
+$VENV_BIN_DIR/python3 $SCRIPT_DIR/fix_universal_archs_option.py
+retVal=$?
+if [ $retVal -ne 0 ]; then
+    echo "Could not fix universal-archs option!"
     exit $retVal
 fi
 
